@@ -7,7 +7,7 @@ const app = express();
 // rate limit the requests from a user to only 5 request per second
 // If a user sends more than 5 requests in a single second, the server
 // should block them with a 404.
-// User will be sending in their user id in the header as 'user-id'
+// User will be sending in their user userId in the header as 'user-userId'
 // You have been given a numberOfRequestsForUser object to start off with which
 // clears every one second
 
@@ -15,6 +15,24 @@ let numberOfRequestsForUser = {};
 setInterval(() => {
     numberOfRequestsForUser = {};
 }, 1000)
+
+app.use((req,res,next) => {
+  const userId = req.headers["user-id"];
+  if(numberOfRequestsForUser[userId]){
+    numberOfRequestsForUser[userId]++;
+    if(numberOfRequestsForUser[userId] > 5 ){
+      res.status(404).json({msg : "Access Denied for you"});
+    }
+    else{
+      next();
+    }
+
+  }
+  else{
+    numberOfRequestsForUser[userId] = 1;
+    next();
+  }
+});
 
 app.get('/user', function(req, res) {
   res.status(200).json({ name: 'john' });
